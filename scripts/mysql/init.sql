@@ -12,8 +12,8 @@ create table if not exists `class` (
     `name` varchar(100) not null,
     `description` varchar(500) not null,
     `created_at` datetime not null,
-    `updated_at` datetime not null,
-    primary key (`id`)
+    primary key (`id`),
+    unique key `name` (`name`)
 ) engine=InnoDB default charset=utf8;
 
 create table if not exists `asset` (
@@ -22,8 +22,8 @@ create table if not exists `asset` (
     `name` varchar(100) not null,
     `description` varchar(500),
     `created_at` datetime not null,
-    `updated_at` datetime not null,
     primary key (`id`),
+    unique key `name` (`name`),
     index `class_id` (`class_id`),
     foreign key (`class_id`) references `class` (`id`)
 ) engine=InnoDB default charset=utf8;
@@ -33,8 +33,8 @@ create table if not exists `event` (
     `name` varchar(100) not null,
     `description` varchar(500) not null,
     `created_at` datetime not null,
-    `updated_at` datetime not null,
-    primary key (`id`)
+    primary key (`id`),
+    unique key `name` (`name`)
 ) engine=InnoDB default charset=utf8;	
 
 create table if not exists `history` (
@@ -45,5 +45,8 @@ create table if not exists `history` (
     `value` decimal(10, 2) not null,
     primary key (`id`),
     index `asset_id` (`asset_id`),
+    index `event_id` (`event_id`),
+    index `at` (`at`),
     foreign key (`asset_id`) references `asset` (`id`)
+    foreign key (`event_id`) references `event` (`id`)
 ) engine=InnoDB default charset=utf8;
