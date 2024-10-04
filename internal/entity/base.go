@@ -1,4 +1,4 @@
-package domain
+package entity
 
 import (
 	"github.com/lavinas/vessel/internal/port"
