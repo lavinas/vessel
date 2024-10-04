@@ -10,7 +10,6 @@ const (
 	assetTable = "asset"
 )
 
-
 // Asset represents the asset domain model
 type Asset struct {
 	Base
@@ -35,7 +34,7 @@ func (a *Asset) Create(className, name, description string, tx interface{}) erro
 	vals := []string{fmt.Sprintf("%d", a.Class.ID), name, description, time.Now().Format(time.DateTime)}
 	if a.ID, err = a.Repo.InsertAuto(tx, base, assetTable, &fds, &vals); err != nil {
 		return err
-	}	
+	}
 	return nil
 }
 

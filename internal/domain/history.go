@@ -8,11 +8,11 @@ import (
 // History represents the history domain model
 type History struct {
 	Base
-	ID      int64
-	At      time.Time
-	Asset   *Asset
-	Event   *Event
-	Value   float64
+	ID    int64
+	At    time.Time
+	Asset *Asset
+	Event *Event
+	Value float64
 }
 
 // Create is a method that creates a history

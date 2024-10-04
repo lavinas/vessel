@@ -1,8 +1,8 @@
 package domain
 
 import (
-	"time"
 	"strconv"
+	"time"
 )
 
 const (
@@ -75,4 +75,3 @@ func (c *Class) Create(name, description string) error {
 	}
 	return nil
 }
-

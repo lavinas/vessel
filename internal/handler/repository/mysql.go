@@ -8,8 +8,8 @@ import (
 	"net"
 	"os"
 	"regexp"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/go-sql-driver/mysql"
 	gssh "golang.org/x/crypto/ssh"
@@ -22,10 +22,10 @@ const (
 	ErrRepoPassNotImplemented  = "password authentication is not implemented"
 	ErrRepoSshTimeout          = "ssh connection timeout"
 	ErrRepoProtoNotImplemented = "protocol is not implemented"
-	ErrTransactionIsNil		   = "transaction is nil"
-	ErrNotFound  			   = "not found"
+	ErrTransactionIsNil        = "transaction is nil"
+	ErrNotFound                = "not found"
 
-	QUse = "USE %s;"
+	QUse          = "USE %s;"
 	QSimpleInsert = "INSERT INTO %s.%s (%s) VALUES (%s) RETURNING id;"
 )
 
@@ -170,7 +170,6 @@ func (m *MySql) GetField(tx interface{}, base, object, field, value string, fiel
 	}
 	return &vals, nil
 }
-
 
 // DeleteId is a method that deletes an object by id
 func (m *MySql) DeleteId(tx interface{}, base, object string, id int64) error {

@@ -1,8 +1,8 @@
 package domain
 
 import (
-	"time"
 	"strconv"
+	"time"
 )
 
 // Event represents the event domain model
