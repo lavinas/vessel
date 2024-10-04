@@ -9,6 +9,7 @@ import (
 	"os"
 	"regexp"
 	"time"
+	"strings"
 
 	"github.com/go-sql-driver/mysql"
 	gssh "golang.org/x/crypto/ssh"
@@ -21,6 +22,11 @@ const (
 	ErrRepoPassNotImplemented  = "password authentication is not implemented"
 	ErrRepoSshTimeout          = "ssh connection timeout"
 	ErrRepoProtoNotImplemented = "protocol is not implemented"
+	ErrTransactionIsNil		   = "transaction is nil"
+	ErrNotFound  			   = "not found"
+
+	QUse = "USE %s;"
+	QSimpleInsert = "INSERT INTO %s.%s (%s) VALUES (%s) RETURNING id;"
 )
 
 // MySql represents the mysql repository
@@ -77,15 +83,104 @@ func (m *MySql) Check() error {
 	return nil
 }
 
-// QueryRow is a method that queries a row in mysql repository
-func (m *MySql) QueryRow(query string, args ...interface{}) interface{} {
-	return m.Conn.QueryRow(query, args...)
+// Begin is a method that begins a transaction
+func (m *MySql) Begin(base string) (interface{}, error) {
+	if err := m.Check(); err != nil {
+		return nil, err
+	}
+	if base != "" {
+		if _, err := m.Conn.Exec(fmt.Sprintf(QUse, base)); err != nil {
+			return nil, err
+		}
+	}
+	return m.Conn.Begin()
 }
 
-// Scan is a method that scans a row in mysql repository
-func (m *MySql) Scan(row interface{}, args ...any) error {
-	r := row.(*sql.Row)
-	return r.Scan(args...)
+// Commit is a method that commits a transaction
+func (m *MySql) Commit(tx interface{}) error {
+	return tx.(*sql.Tx).Commit()
+}
+
+// Rollback is a method that rolls back a transaction
+func (m *MySql) Rollback(tx interface{}) error {
+	return tx.(*sql.Tx).Rollback()
+}
+
+// InsertAuto is a method that inserts an object into the database and return the id
+func (m *MySql) InsertAuto(tx interface{}, base, object string, fields *[]string, vals *[]string) (int64, error) {
+	if tx == nil {
+		return 0, errors.New(ErrTransactionIsNil)
+	}
+	txi := tx.(*sql.Tx)
+	svals := ""
+	for _, val := range *vals {
+		svals += fmt.Sprintf("'%s', ", val)
+	}
+	svals = strings.TrimSuffix(svals, ", ")
+	sql := fmt.Sprintf(QSimpleInsert, base, object, strings.Join(*fields, ", "), svals)
+	var id int64
+	if err := txi.QueryRow(sql).Scan(&id); err != nil {
+		return 0, err
+	}
+	return id, nil
+}
+
+// GetId is a method that gets an object by id
+func (m *MySql) GetId(tx interface{}, base, object string, id int64, fields *[]string) (*[]string, error) {
+	if tx == nil {
+		return nil, errors.New(ErrTransactionIsNil)
+	}
+	txi := tx.(*sql.Tx)
+	sql := fmt.Sprintf("SELECT * FROM %s.%s WHERE id = %d", base, object, id)
+	rows, err := txi.Query(sql)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	if !rows.Next() {
+		return nil, errors.New(ErrNotFound)
+	}
+	vals := make([]string, len(*fields))
+	err = rows.Scan(&vals)
+	if err != nil {
+		return nil, err
+	}
+	return &vals, nil
+}
+
+// GetField is a method that gets an object by field
+func (m *MySql) GetField(tx interface{}, base, object, field, value string, fields *[]string) (*[]string, error) {
+	if tx == nil {
+		return nil, errors.New(ErrTransactionIsNil)
+	}
+	txi := tx.(*sql.Tx)
+	sql := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = '%s'", base, object, field, value)
+	rows, err := txi.Query(sql)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	if !rows.Next() {
+		return nil, errors.New(ErrNotFound)
+	}
+	vals := make([]string, len(*fields))
+	err = rows.Scan(&vals)
+	if err != nil {
+		return nil, err
+	}
+	return &vals, nil
+}
+
+
+// DeleteId is a method that deletes an object by id
+func (m *MySql) DeleteId(tx interface{}, base, object string, id int64) error {
+	if tx == nil {
+		return errors.New(ErrTransactionIsNil)
+	}
+	txi := tx.(*sql.Tx)
+	sql := fmt.Sprintf("DELETE FROM %s.%s WHERE id = %d", base, object, id)
+	_, err := txi.Exec(sql)
+	return err
 }
 
 // connect is a function that connects to the database
