@@ -8,4 +8,6 @@ type Request interface {
 
 // Response represents the response interface
 type Response interface {
+	ToJson() string
+	ToLine() string
 }

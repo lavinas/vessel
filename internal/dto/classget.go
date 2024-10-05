@@ -2,6 +2,7 @@ package dto
 
 import (
 	"encoding/json"
+	"fmt"
 )
 
 // GetClassRequest represents the get class request
@@ -41,4 +42,15 @@ func NewClassGetResponse(status, statusdesc string, ID int64, name, description 
 		Description: description,
 		CreatedAt:   createdAt,
 	}
+}
+
+// ToJson returns the json representation of the response
+func (r *ClassGetResponse) ToJson() string {
+	b, _ := json.Marshal(r)
+	return string(b)
+}
+
+// ToLine returns the line representation of the response
+func (r *ClassGetResponse) ToLine() string {
+	return fmt.Sprintf("%d %s %s %s %s", r.ID, r.Name, r.Description, r.CreatedAt, r.Status)
 }

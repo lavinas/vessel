@@ -25,3 +25,4 @@ func (s *Base) LogOk(request port.Request) {
 func (s *Base) LogError(request port.Request, err error) {
 	s.Logger.Printf(errMessage, request.Action, request.Action(), err.Error())
 }
+

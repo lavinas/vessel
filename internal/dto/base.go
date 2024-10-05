@@ -1,5 +1,11 @@
 package dto
 
+import (
+	"fmt"
+
+	"encoding/json"
+)
+
 const (
 	StatusSuccess             = "success"
 	StatusCreated             = "created"
@@ -23,4 +29,15 @@ func NewBaseResponse(status, description string) *BaseResponse {
 		Status:      status,
 		Description: description,
 	}
+}
+
+// ToJson returns the json representation of the response
+func (r *BaseResponse) ToJson() string {
+	b, _ := json.Marshal(r)
+	return string(b)	
+}
+
+// ToLine returns the line representation of the response
+func (r *BaseResponse) ToLine() string {
+	return fmt.Sprintf("%s %s", r.Status, r.Description)
 }

@@ -10,7 +10,6 @@ type DtoService struct {
 	Base
 }
 
-
 // NewDtoService creates a new DtoService
 func NewDtoService(repo port.Repository, logger port.Logger, config port.Config) *DtoService {
 	return &DtoService{
@@ -35,6 +34,3 @@ func (s *DtoService) Run(request port.Request) port.Response {
 		return dto.NewBaseResponse(dto.StatusBadRequest, "invalid action")
 	}
 }
-
-
-

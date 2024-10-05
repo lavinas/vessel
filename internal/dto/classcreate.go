@@ -1,6 +1,8 @@
 package dto
 
 import (
+	"fmt"
+
 	"encoding/json"
 )
 
@@ -36,4 +38,15 @@ func NewClassCreateResponse(status, description string, ID int64) *ClassCreateRe
 		},
 		ID: ID,
 	}
+}
+
+// ToJson returns the json representation of the response
+func (r *ClassCreateResponse) ToJson() string {
+	b, _ := json.Marshal(r)
+	return string(b)
+}
+
+// ToLine returns the line representation of the response
+func (r *ClassCreateResponse) ToLine() string {
+	return fmt.Sprintf("%d %s", r.ID, r.Status)
 }
