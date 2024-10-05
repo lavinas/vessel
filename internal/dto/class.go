@@ -8,9 +8,8 @@ type CreateClassRequest struct {
 
 // CreateClassResponse represents the create class response
 type CreateClassResponse struct {
+	BaseResponse
 	ID          int64  `json:"id"`
-	Status      string `json:"status"`
-	Description string `json:"description"`
 }
 
 // GetClassRequest represents the get class request
@@ -20,6 +19,7 @@ type GetClassRequest struct {
 
 // GetClassResponse represents the get class response
 type GetClassResponse struct {
+	BaseResponse
 	ID          int64  `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
