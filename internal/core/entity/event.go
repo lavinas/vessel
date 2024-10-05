@@ -21,7 +21,7 @@ func (e *Event) GetByID(id int64, tx interface{}) error {
 		return err
 	}
 	fields := []string{"id", "name", "description", "created_at"}
-	vals, err := e.Repo.GetId(tx, base, "event", id, &fields)
+	vals, err := e.Repo.GetId(tx, baseName, "event", id, &fields)
 	if err != nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func (e *Event) GetByName(name string, tx interface{}) error {
 		return err
 	}
 	fields := []string{"id", "name", "description", "created_at"}
-	vals, err := e.Repo.GetField(tx, base, "event", "name", name, &fields)
+	vals, err := e.Repo.GetField(tx, baseName, "event", "name", name, &fields)
 	if err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func (e *Event) Create(name, description string) error {
 	}
 	fds := []string{"name", "description", "created_at"}
 	vals := []string{name, description, time.Now().Format(time.DateTime)}
-	if e.ID, err = e.Repo.InsertAuto(tx, base, "event", &fds, &vals); err != nil {
+	if e.ID, err = e.Repo.InsertAuto(tx, baseName, "event", &fds, &vals); err != nil {
 		return err
 	}
 	return nil

@@ -3,6 +3,8 @@ package entity
 import (
 	"strconv"
 	"time"
+
+	"github.com/lavinas/vessel/internal/port"
 )
 
 const (
@@ -18,6 +20,15 @@ type Class struct {
 	CreatedAt   time.Time
 }
 
+// NewClass creates a new Class
+func NewClass(repo port.Repository) *Class {
+	return &Class{
+		Base: Base{
+			Repo: repo,
+		},
+	}
+}
+
 // GetByID is a method that gets a class by ID
 func (c *Class) GetByID(id int64, tx interface{}) error {
 	tx, err := c.CheckTx(tx)
@@ -25,7 +36,7 @@ func (c *Class) GetByID(id int64, tx interface{}) error {
 		return err
 	}
 	fields := []string{"id", "name", "description", "created_at"}
-	vals, err := c.Repo.GetId(tx, base, classTable, id, &fields)
+	vals, err := c.Repo.GetId(tx, baseName, classTable, id, &fields)
 	if err != nil {
 		return err
 	}
@@ -47,7 +58,7 @@ func (c *Class) GetByName(name string, tx interface{}) error {
 		return err
 	}
 	fields := []string{"id", "name", "description", "created_at"}
-	vals, err := c.Repo.GetField(tx, base, classTable, "name", name, &fields)
+	vals, err := c.Repo.GetField(tx, baseName, classTable, "name", name, &fields)
 	if err != nil {
 		return err
 	}
@@ -70,7 +81,7 @@ func (c *Class) Create(name, description string) error {
 	}
 	fds := []string{"name", "description", "created_at"}
 	vals := []string{name, description, time.Now().Format(time.DateTime)}
-	if c.ID, err = c.Repo.InsertAuto(tx, base, classTable, &fds, &vals); err != nil {
+	if c.ID, err = c.Repo.InsertAuto(tx, baseName, classTable, &fds, &vals); err != nil {
 		return err
 	}
 	return nil

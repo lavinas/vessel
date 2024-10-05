@@ -31,7 +31,7 @@ func (h *History) Create(at time.Time, assetName, eventName string, value float6
 	}
 	fds := []string{"asset_id", "event_id", "at", "value"}
 	vals := []string{fmt.Sprintf("%d", h.Asset.ID), fmt.Sprintf("%d", h.Event.ID), at.Format(time.DateTime), fmt.Sprintf("%.2f", value)}
-	if h.ID, err = h.Repo.InsertAuto(tx, base, "history", &fds, &vals); err != nil {
+	if h.ID, err = h.Repo.InsertAuto(tx, baseName, "history", &fds, &vals); err != nil {
 		return err
 	}
 	return nil
