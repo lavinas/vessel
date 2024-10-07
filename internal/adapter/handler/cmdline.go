@@ -4,16 +4,16 @@ import (
 	"fmt"
 
 	"github.com/alexflint/go-arg"
-	"github.com/lavinas/vessel/internal/port"
 	"github.com/lavinas/vessel/internal/dto"
+	"github.com/lavinas/vessel/internal/port"
 )
 
 // args represents the arguments for the class command
 type args struct {
-	Action         string         `arg:"-a,--action" help:"Action to perform"`
-	Object         string         `arg:"-o,--object" help:"The object of the class"`
-	ClassCreateCmd ClassCreateCmd `arg:"subcommand:create" help:"Create a class"`
-	ClassGetCmd    ClassGetCmd    `arg:"subcommand:get" help:"Get a class"`
+	Action         string          `arg:"-a,--action" help:"Action to perform"`
+	Object         string          `arg:"-o,--object" help:"The object of the class"`
+	ClassCreateCmd *ClassCreateCmd `arg:"subcommand:create" help:"Create a class"`
+	ClassGetCmd    *ClassGetCmd    `arg:"subcommand:get" help:"Get a class"`
 }
 
 // CommandLine represents the command line
@@ -33,6 +33,10 @@ func (c *CommandLine) Run() {
 	args := args{}
 	arg.MustParse(&args)
 	dto := c.getDto(args)
+	if dto == nil {
+		fmt.Println("Invalid command")
+		return
+	}
 	response := c.service.Run(dto)
 	fmt.Println(response.ToLine())
 }

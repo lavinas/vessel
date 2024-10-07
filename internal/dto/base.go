@@ -34,7 +34,7 @@ func NewBaseResponse(status, description string) *BaseResponse {
 // ToJson returns the json representation of the response
 func (r *BaseResponse) ToJson() string {
 	b, _ := json.Marshal(r)
-	return string(b)	
+	return string(b)
 }
 
 // ToLine returns the line representation of the response
