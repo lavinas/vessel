@@ -7,7 +7,7 @@ services:
     volumes:
       - .:/go/src/
     environment:
-      MYSQL_DNS: root:root@tcp(vessel-mysql:3306)?timeout=5s
+      MYSQL_DNS: root:root@tcp(vessel-mysql:3306)/assets?timeout=5s
     ports:
       - "8080:8080"
 

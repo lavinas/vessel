@@ -40,12 +40,12 @@ func (c *CommandLine) Run() {
 // getDto is a method that gets the correct DTO based on command line arguments
 func (c *CommandLine) getDto(arg args) port.Request {
 	switch {
-	case arg.Action == "ClassCreate" && arg.Object == "Class":
+	case arg.Action == "create" && arg.Object == "Class":
 		return &dto.ClassCreateRequest{
 			Name:        arg.ClassCreateCmd.Name,
 			Description: arg.ClassCreateCmd.Description,
 		}
-	case arg.Action == "ClassGet" && arg.Object == "Class":
+	case arg.Action == "get" && arg.Object == "Class":
 		return &dto.ClassGetRequest{
 			ID: arg.ClassGetCmd.ID,
 		}
