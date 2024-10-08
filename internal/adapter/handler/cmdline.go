@@ -10,8 +10,6 @@ import (
 
 // args represents the arguments for the class command
 type args struct {
-	Action         string          `arg:"-a,--action" help:"Action to perform"`
-	Object         string          `arg:"-o,--object" help:"The object of the class"`
 	ClassCreateCmd *ClassCreateCmd `arg:"subcommand:create" help:"Create a class"`
 	ClassGetCmd    *ClassGetCmd    `arg:"subcommand:get" help:"Get a class"`
 }
@@ -34,7 +32,7 @@ func (c *CommandLine) Run() {
 	arg.MustParse(&args)
 	dto := c.getDto(args)
 	if dto == nil {
-		fmt.Println("Invalid command")
+		fmt.Println("Invalid Command")
 		return
 	}
 	response := c.service.Run(dto)
@@ -44,12 +42,12 @@ func (c *CommandLine) Run() {
 // getDto is a method that gets the correct DTO based on command line arguments
 func (c *CommandLine) getDto(arg args) port.Request {
 	switch {
-	case arg.Action == "create" && arg.Object == "Class":
+	case arg.ClassCreateCmd != nil:
 		return &dto.ClassCreateRequest{
 			Name:        arg.ClassCreateCmd.Name,
 			Description: arg.ClassCreateCmd.Description,
 		}
-	case arg.Action == "get" && arg.Object == "Class":
+	case arg.ClassGetCmd != nil:
 		return &dto.ClassGetRequest{
 			ID: arg.ClassGetCmd.ID,
 		}
