@@ -10,7 +10,7 @@ import (
 
 // args represents the arguments for the class command
 type args struct {
-	ClassCreateCmd *ClassCreateCmd `arg:"subcommand:create" help:"Create a class"`
+	ClassCreateCmd *ClassCreateCmd `arg:"subcommand:createClass" help:"Create a class"`
 	ClassGetCmd    *ClassGetCmd    `arg:"subcommand:get" help:"Get a class"`
 }
 

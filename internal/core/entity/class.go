@@ -53,10 +53,6 @@ func (c *Class) GetByID(id int64, tx interface{}) error {
 
 // Get is a method that gets a class
 func (c *Class) GetByName(name string, tx interface{}) error {
-	tx, err := c.CheckTx(tx)
-	if err != nil {
-		return err
-	}
 	fields := []string{"id", "name", "description", "created_at"}
 	vals, err := c.Repo.GetField(tx, baseName, classTable, "name", name, &fields)
 	if err != nil {
@@ -74,11 +70,8 @@ func (c *Class) GetByName(name string, tx interface{}) error {
 }
 
 // Create is a method that creates a class
-func (c *Class) Create(name, description string) error {
-	tx, err := c.CheckTx(nil)
-	if err != nil {
-		return err
-	}
+func (c *Class) Create(name, description string, tx interface{}) error {
+	var err error
 	fds := []string{"name", "description", "created_at"}
 	vals := []string{name, description, time.Now().Format(time.DateTime)}
 	if c.ID, err = c.Repo.InsertAuto(tx, baseName, classTable, &fds, &vals); err != nil {

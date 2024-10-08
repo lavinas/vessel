@@ -17,7 +17,11 @@ func main() {
 		panic(err)
 	}
 	defer repo.Close()
-	logger := log.New(os.Stdout, "vessel: ", log.LstdFlags)
+	f, err := os.OpenFile("vessel.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		panic(err)
+	}
+	logger := log.New(f, "vessel: ", log.LstdFlags)
 	config := config.NewConfig()
 	service := service.NewDtoService(repo, logger, config)
 	handler := handler.NewCommandLine(service)

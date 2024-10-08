@@ -26,7 +26,7 @@ const (
 	ErrNotFound                = "not found"
 
 	QUse          = "USE %s;"
-	QSimpleInsert = "INSERT INTO %s.%s (%s) VALUES (%s) RETURNING id;"
+	QSimpleInsert = "INSERT INTO %s.%s (%s) VALUES (%s);"
 )
 
 // MySql represents the mysql repository
@@ -118,8 +118,12 @@ func (m *MySql) InsertAuto(tx interface{}, base, object string, fields *[]string
 	}
 	svals = strings.TrimSuffix(svals, ", ")
 	sql := fmt.Sprintf(QSimpleInsert, base, object, strings.Join(*fields, ", "), svals)
-	var id int64
-	if err := txi.QueryRow(sql).Scan(&id); err != nil {
+	result, err := txi.Exec(sql)
+	if err != nil {
+		return 0, err
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
 		return 0, err
 	}
 	return id, nil

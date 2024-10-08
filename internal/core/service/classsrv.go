@@ -26,8 +26,18 @@ func NewClassService(repo port.Repository, logger port.Logger, config port.Confi
 
 // Create is a method that creates a class
 func (s *ClassService) Create(request *dto.ClassCreateRequest) *dto.ClassCreateResponse {
+	tx, err := s.Repo.Begin("assets")
+	if err != nil {
+		s.LogError(request, err)
+		return dto.NewClassCreateResponse(dto.StatusInternalServerError, "internal server error", 0)
+	}
+	defer s.Repo.Rollback(tx)
 	class := entity.NewClass(s.Base.Repo)
-	if err := class.Create(request.Name, request.Description); err != nil {
+	if err := class.Create(request.Name, request.Description, tx); err != nil {
+		s.LogError(request, err)
+		return dto.NewClassCreateResponse(dto.StatusInternalServerError, "internal server error", 0)
+	}
+	if err := s.Repo.Commit(tx); err != nil {
 		s.LogError(request, err)
 		return dto.NewClassCreateResponse(dto.StatusInternalServerError, "internal server error", 0)
 	}
@@ -37,6 +47,12 @@ func (s *ClassService) Create(request *dto.ClassCreateRequest) *dto.ClassCreateR
 
 // GetByID is a method that gets a class by ID
 func (s *ClassService) Get(request *dto.ClassGetRequest) *dto.ClassGetResponse {
+	tx, err := s.Repo.Begin("assets")
+	if err != nil {
+		s.LogError(request, err)
+		return dto.NewClassGetResponse(dto.StatusInternalServerError, "internal server error", 0, "", "", "")
+	}
+	defer s.Repo.Rollback(tx)
 	c := entity.NewClass(s.Base.Repo)
 	if err := c.GetByID(request.ID, nil); err != nil {
 		s.LogError(request, err)
