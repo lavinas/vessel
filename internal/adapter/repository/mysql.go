@@ -112,12 +112,14 @@ func (m *MySql) InsertAuto(tx interface{}, base, object string, fields *[]string
 		return 0, errors.New(ErrTransactionIsNil)
 	}
 	txi := tx.(*sql.Tx)
-	svals := ""
+	vls := ""
 	for _, val := range *vals {
-		svals += fmt.Sprintf("'%s', ", val)
+		vls += fmt.Sprintf("'%s', ", val)
 	}
-	svals = strings.TrimSuffix(svals, ", ")
-	sql := fmt.Sprintf(QSimpleInsert, base, object, strings.Join(*fields, ", "), svals)
+	if vls != "" {
+		vls = strings.TrimSuffix(vls, ", ")
+	}
+	sql := fmt.Sprintf(QSimpleInsert, base, object, vls, strings.Join(*fields, ", "))
 	result, err := txi.Exec(sql)
 	if err != nil {
 		return 0, err
@@ -130,12 +132,12 @@ func (m *MySql) InsertAuto(tx interface{}, base, object string, fields *[]string
 }
 
 // GetId is a method that gets an object by id
-func (m *MySql) GetId(tx interface{}, base, object string, id int64, fields *[]string) (*[]string, error) {
+func (m *MySql) GetId(tx interface{}, base, object string, id int64, fields *[]string) (*[]any, error) {
 	if tx == nil {
 		return nil, errors.New(ErrTransactionIsNil)
 	}
 	txi := tx.(*sql.Tx)
-	sql := fmt.Sprintf("SELECT * FROM %s.%s WHERE id = %d", base, object, id)
+	sql := fmt.Sprintf("SELECT %s FROM %s.%s WHERE id = %d", strings.Join(*fields, ", "), base, object, id)
 	rows, err := txi.Query(sql)
 	if err != nil {
 		return nil, err
@@ -144,21 +146,22 @@ func (m *MySql) GetId(tx interface{}, base, object string, id int64, fields *[]s
 	if !rows.Next() {
 		return nil, errors.New(ErrNotFound)
 	}
-	vals := make([]string, len(*fields))
-	err = rows.Scan(&vals)
+	vals := make([]interface{}, len(*fields))
+	err = rows.Scan(vals...)
 	if err != nil {
+		fmt.Println(1, err)
 		return nil, err
 	}
 	return &vals, nil
 }
 
 // GetField is a method that gets an object by field
-func (m *MySql) GetField(tx interface{}, base, object, field, value string, fields *[]string) (*[]string, error) {
+func (m *MySql) GetField(tx interface{}, base, object, field, value string, fields *[]string) (*[]interface{}, error) {
 	if tx == nil {
 		return nil, errors.New(ErrTransactionIsNil)
 	}
 	txi := tx.(*sql.Tx)
-	sql := fmt.Sprintf("SELECT * FROM %s.%s WHERE %s = '%s'", base, object, field, value)
+	sql := fmt.Sprintf("SELECT %s FROM %s.%s WHERE %s = '%s'", strings.Join(*fields, ", "), base, object, field, value)
 	rows, err := txi.Query(sql)
 	if err != nil {
 		return nil, err
@@ -167,7 +170,7 @@ func (m *MySql) GetField(tx interface{}, base, object, field, value string, fiel
 	if !rows.Next() {
 		return nil, errors.New(ErrNotFound)
 	}
-	vals := make([]string, len(*fields))
+	vals := make([]interface{}, len(*fields))
 	err = rows.Scan(&vals)
 	if err != nil {
 		return nil, err

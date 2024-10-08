@@ -1,15 +1,29 @@
 package dto
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 
 	"encoding/json"
+)
+
+const (
+	ErrClassCreateRequestNameIsBlank = "name is blank"
 )
 
 // CreateClassRequest represents the create class request
 type ClassCreateRequest struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
+}
+
+// Validate validates request params
+func (r *ClassCreateRequest) Validate() error {
+	if strings.Trim(r.Name, " ") == "" {
+		return errors.New(ErrClassCreateRequestNameIsBlank)
+	}
+	return nil
 }
 
 // Action returns the action of the request

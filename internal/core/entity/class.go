@@ -1,14 +1,14 @@
 package entity
 
 import (
-	"strconv"
 	"time"
 
 	"github.com/lavinas/vessel/internal/port"
 )
 
 const (
-	classTable = "class"
+	ErrNameIsBlank = "name is blank"
+	classTable     = "class"
 )
 
 // Class represents the class domain model
@@ -40,14 +40,10 @@ func (c *Class) GetByID(id int64, tx interface{}) error {
 	if err != nil {
 		return err
 	}
-	if c.ID, err = strconv.ParseInt((*vals)[0], 10, 64); err != nil {
-		return err
-	}
-	c.Name = (*vals)[1]
-	c.Description = (*vals)[2]
-	if c.CreatedAt, err = time.Parse(time.DateTime, (*vals)[3]); err != nil {
-		return err
-	}
+	c.ID = (*vals)[0].(int64)
+	c.Name = (*vals)[1].(string)
+	c.Description = (*vals)[2].(string)
+	c.CreatedAt = (*vals)[3].(time.Time)
 	return nil
 }
 
@@ -58,14 +54,10 @@ func (c *Class) GetByName(name string, tx interface{}) error {
 	if err != nil {
 		return err
 	}
-	if c.ID, err = strconv.ParseInt((*vals)[0], 10, 64); err != nil {
-		return err
-	}
-	c.Name = (*vals)[1]
-	c.Description = (*vals)[2]
-	if c.CreatedAt, err = time.Parse(time.DateTime, (*vals)[3]); err != nil {
-		return err
-	}
+	c.ID = (*vals)[0].(int64)
+	c.Name = (*vals)[1].(string)
+	c.Description = (*vals)[2].(string)
+	c.CreatedAt = (*vals)[3].(time.Time)
 	return nil
 }
 

@@ -2,12 +2,25 @@ package dto
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+)
+
+const (
+	ErrClassGetRequestInvalidID = "invalid ID"
 )
 
 // GetClassRequest represents the get class request
 type ClassGetRequest struct {
 	ID int64 `json:"id"`
+}
+
+// Validate validates request params
+func (r *ClassGetRequest) Validate() error {
+	if r.ID == 0 {
+		return errors.New(ErrClassGetRequestInvalidID)
+	}
+	return nil
 }
 
 // Action returns the action of the request

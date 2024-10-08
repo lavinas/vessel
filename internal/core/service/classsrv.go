@@ -26,6 +26,10 @@ func NewClassService(repo port.Repository, logger port.Logger, config port.Confi
 
 // Create is a method that creates a class
 func (s *ClassService) Create(request *dto.ClassCreateRequest) *dto.ClassCreateResponse {
+	if err := request.Validate(); err != nil {
+		s.LogError(request, err)
+		return dto.NewClassCreateResponse(dto.StatusBadRequest, err.Error(), 0)
+	}
 	tx, err := s.Repo.Begin("assets")
 	if err != nil {
 		s.LogError(request, err)
@@ -47,6 +51,10 @@ func (s *ClassService) Create(request *dto.ClassCreateRequest) *dto.ClassCreateR
 
 // GetByID is a method that gets a class by ID
 func (s *ClassService) Get(request *dto.ClassGetRequest) *dto.ClassGetResponse {
+	if err := request.Validate(); err != nil {
+		s.LogError(request, err)
+		return dto.NewClassGetResponse(dto.StatusBadRequest, err.Error(), 0, "", "", "")
+	}
 	tx, err := s.Repo.Begin("assets")
 	if err != nil {
 		s.LogError(request, err)

@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"strconv"
 	"time"
 )
 
@@ -25,14 +24,10 @@ func (e *Event) GetByID(id int64, tx interface{}) error {
 	if err != nil {
 		return err
 	}
-	if e.ID, err = strconv.ParseInt((*vals)[0], 10, 64); err != nil {
-		return err
-	}
-	e.Name = (*vals)[1]
-	e.Description = (*vals)[2]
-	if e.CreatedAt, err = time.Parse(time.DateTime, (*vals)[3]); err != nil {
-		return err
-	}
+	e.ID = (*vals)[0].(int64)
+	e.Name = (*vals)[1].(string)
+	e.Description = (*vals)[2].(string)
+	e.CreatedAt = (*vals)[3].(time.Time)
 	return nil
 }
 
@@ -47,14 +42,10 @@ func (e *Event) GetByName(name string, tx interface{}) error {
 	if err != nil {
 		return err
 	}
-	if e.ID, err = strconv.ParseInt((*vals)[0], 10, 64); err != nil {
-		return err
-	}
-	e.Name = (*vals)[1]
-	e.Description = (*vals)[2]
-	if e.CreatedAt, err = time.Parse(time.DateTime, (*vals)[3]); err != nil {
-		return err
-	}
+	e.ID = (*vals)[0].(int64)
+	e.Name = (*vals)[1].(string)
+	e.Description = (*vals)[2].(string)
+	e.CreatedAt = (*vals)[3].(time.Time)
 	return nil
 }
 

@@ -4,15 +4,8 @@ import (
 	"fmt"
 
 	"github.com/alexflint/go-arg"
-	"github.com/lavinas/vessel/internal/dto"
 	"github.com/lavinas/vessel/internal/port"
 )
-
-// args represents the arguments for the class command
-type args struct {
-	ClassCreateCmd *ClassCreateCmd `arg:"subcommand:createClass" help:"Create a class"`
-	ClassGetCmd    *ClassGetCmd    `arg:"subcommand:get" help:"Get a class"`
-}
 
 // CommandLine represents the command line
 type CommandLine struct {
@@ -28,9 +21,9 @@ func NewCommandLine(service port.Service) *CommandLine {
 
 // Run is a method that runs the command line
 func (c *CommandLine) Run() {
-	args := args{}
+	args := Args{}
 	arg.MustParse(&args)
-	dto := c.getDto(args)
+	dto := args.GetDto()
 	if dto == nil {
 		fmt.Println("Invalid Command")
 		return
@@ -39,18 +32,16 @@ func (c *CommandLine) Run() {
 	fmt.Println(response.ToLine())
 }
 
-// getDto is a method that gets the correct DTO based on command line arguments
-func (c *CommandLine) getDto(arg args) port.Request {
+// args represents the arguments for the class command
+type Args struct {
+	Class *ClassCmd `arg:"subcommand:class" help:"Class commands"`
+}
+
+// GetDto is a method that gets the correct DTO based on command line arguments
+func (a *Args) GetDto() port.Request {
 	switch {
-	case arg.ClassCreateCmd != nil:
-		return &dto.ClassCreateRequest{
-			Name:        arg.ClassCreateCmd.Name,
-			Description: arg.ClassCreateCmd.Description,
-		}
-	case arg.ClassGetCmd != nil:
-		return &dto.ClassGetRequest{
-			ID: arg.ClassGetCmd.ID,
-		}
+	case a.Class != nil:
+		return a.Class.GetDto()
 	}
 	return nil
 }

@@ -4,6 +4,7 @@ package port
 type Request interface {
 	Action() string
 	ToJson() string
+	Validate() error
 }
 
 // Response represents the response interface

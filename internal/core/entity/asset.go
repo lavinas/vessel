@@ -2,7 +2,6 @@ package entity
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 )
 
@@ -49,21 +48,24 @@ func (a *Asset) GetByName(name string, tx interface{}) error {
 	if err != nil {
 		return err
 	}
-	if a.ID, err = strconv.ParseInt((*vals)[0], 10, 64); err != nil {
-		return err
-	}
-	a.Class = &Class{}
-	if a.Class.ID, err = strconv.ParseInt((*vals)[1], 10, 64); err != nil {
-		return err
-	}
-	if err := a.Class.GetByID(a.Class.ID, tx); err != nil {
-		return err
-	}
-	a.Name = (*vals)[2]
-	a.Description = (*vals)[3]
-	a.CreatedAt, err = time.Parse(time.DateTime, (*vals)[4])
+	a.ID = (*vals)[0].(int64)
+	a.Name = (*vals)[2].(string)
+	a.Description = (*vals)[3].(string)
+	a.CreatedAt = (*vals)[4].(time.Time)
+	a.Class, err = a.getAssetClass((*vals)[1].(int64), tx)
 	if err != nil {
 		return err
 	}
 	return nil
 }
+
+// getAssetClass is a method that gets the asset class
+func (a *Asset) getAssetClass(id int64, tx interface{}) (*Class, error) {
+	a.Class = &Class{}
+	a.Class.ID = id
+	if err := a.Class.GetByID(a.Class.ID, tx); err != nil {
+		return nil, err
+	}
+	return a.Class, nil
+}
+
