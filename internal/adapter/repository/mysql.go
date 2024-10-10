@@ -8,7 +8,6 @@ import (
 	"net"
 	"os"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
@@ -24,7 +23,8 @@ const (
 	ErrRepoSshTimeout          = "ssh connection timeout"
 	ErrRepoProtoNotImplemented = "protocol is not implemented"
 	ErrTransactionIsNil        = "transaction is nil"
-	ErrNotFound                = "not found"
+	ErrInsertAutoParams  = "mysql insert auto invalid params"
+	ErrGetParams          = "mysal get invalid params"
 
 	QUse          = "USE %s;"
 	QSimpleInsert = "INSERT INTO %s.%s (%s) VALUES (%s);"
@@ -108,16 +108,14 @@ func (m *MySql) Rollback(tx interface{}) error {
 	return tx.(*sql.Tx).Rollback()
 }
 
-// InsertAuto is a method that inserts an object into the database and return the id
-func (m *MySql) InsertAuto(tx interface{}, base, object string, keys *[]string, vals *[]string) (int64, error) {
-	if tx == nil {
-		return 0, errors.New(ErrTransactionIsNil)
-	}
-	if len(*keys) == 0 || len(*keys) != len(*vals) {
-		return 0, errors.New("fields and values must have the same length")
-	}
+// InsertAuto is a method that inserts an object into the database and return the i d
+func (m *MySql) InsertAuto(tx interface{}, base, object string, vals *map[string]*string) (int64, error) {
+	if tx == nil || base == "" || object == "" || vals == nil || len(*vals) == 0 {
+		return 0, errors.New(ErrInsertAutoParams)
+	} 
 	txi := tx.(*sql.Tx)
-	sql := fmt.Sprintf(QSimpleInsert, base, object, strings.Join(*keys, ", "), strings.Join(*vals, ", "))
+	keys, vls := m.getFormatVals(vals)
+	sql := fmt.Sprintf(QSimpleInsert, base, object, keys, vls)
 	result, err := txi.Exec(sql)
 	if err != nil {
 		return 0, err
@@ -130,16 +128,12 @@ func (m *MySql) InsertAuto(tx interface{}, base, object string, keys *[]string, 
 }
 
 // Get is a method that gets all columns of a list of objects by a field
-func (m *MySql) Get (tx interface{}, base, object, keys *[]string, values *[]string) (*[]map[string]*string, error) {
-	if tx == nil {
-		return nil, errors.New(ErrTransactionIsNil)
+func (m *MySql) Get (tx interface{}, base, object string, vals *map[string]*string) (*[]map[string]*string, error) {
+	if tx == nil || base == "" || object == "" || vals == nil || len(*vals) == 0 {
+		return nil, errors.New(ErrGetParams)
 	}
 	txi := tx.(*sql.Tx)
-	where, err := m.getFormatWhere(keys, values)
-	if err != nil {
-		return nil, err
-	}
-	sql := fmt.Sprintf(QGet, base, object, where)
+	sql := fmt.Sprintf(QGet, base, object, m.getFormatWhere(vals))
 	rows, err := txi.Query(sql)
 	if err != nil {
 		return nil, err
@@ -148,19 +142,31 @@ func (m *MySql) Get (tx interface{}, base, object, keys *[]string, values *[]str
 	return m.formatRows(rows)
 }
 
+// getFormatVals is a method that gets keys and values of map of vals
+func (m *MySql) getFormatVals(vals *map[string]*string) (string, string) {
+	var keys, values string
+	for key, val := range *vals {
+		keys += key + ", "
+		if val == nil {
+			values += "NULL, "
+			continue
+		}
+		values += fmt.Sprintf("'%s', ", *val)
+	}	
+	return keys[:len(keys)-2], values[:len(values)-2]
+}
+
 // getFormatKeys is a method that gets the keys of the object formatted
-func (m *MySql) getFormatWhere(keys *[]string, values *[]string) (string, error) {
-	if len(*keys) != len(*values) {
-		return "", errors.New("fields and values must have the same length")
+func (m *MySql) getFormatWhere(vals *map[string]*string) string {
+	var where string
+	for key, val := range *vals {
+		if val == nil {
+			where += fmt.Sprintf("%s is NULL AND ", key)
+			continue
+		}
+		where += fmt.Sprintf("%s = '%s' AND ", key, *val)
 	}
-	ret := ""
-	for i, key := range *keys {
-		ret += fmt.Sprintf("%s = '%s' AND ", key, (*values)[i])
-	}
-	if ret != "" {
-		ret = ret[:len(ret)-5]
-	}
-	return ret, nil
+	return where[:len(where)-5]
 }
 
 // queyMountMap is a method that mounts the slice of maps os result

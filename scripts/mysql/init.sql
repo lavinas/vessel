@@ -10,7 +10,7 @@ use `assets`;
 create table if not exists `class` (
     `id` bigint not null auto_increment,
     `name` varchar(100) not null,
-    `description` varchar(500) not null,
+    `description` varchar(500),
     `created_at` datetime not null,
     primary key (`id`),
     unique key `name` (`name`)
@@ -31,7 +31,7 @@ create table if not exists `asset` (
 create table if not exists `event` (
     `id` bigint not null auto_increment,
     `name` varchar(100) not null,
-    `description` varchar(500) not null,
+    `description` varchar(500),
     `created_at` datetime not null,
     primary key (`id`),
     unique key `name` (`name`)
