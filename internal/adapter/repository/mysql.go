@@ -18,6 +18,7 @@ import (
 
 const (
 	ConnectionTimeout          = 5 * time.Second
+	
 	ErrRepoSshInvalid          = "invalid ssh dns"
 	ErrRepoPassNotImplemented  = "password authentication is not implemented"
 	ErrRepoSshTimeout          = "ssh connection timeout"
@@ -27,6 +28,7 @@ const (
 
 	QUse          = "USE %s;"
 	QSimpleInsert = "INSERT INTO %s.%s (%s) VALUES (%s);"
+	QGet          = "SELECT * FROM %s.%s WHERE %s;"
 )
 
 // MySql represents the mysql repository
@@ -107,19 +109,15 @@ func (m *MySql) Rollback(tx interface{}) error {
 }
 
 // InsertAuto is a method that inserts an object into the database and return the id
-func (m *MySql) InsertAuto(tx interface{}, base, object string, fields *[]string, vals *[]string) (int64, error) {
+func (m *MySql) InsertAuto(tx interface{}, base, object string, keys *[]string, vals *[]string) (int64, error) {
 	if tx == nil {
 		return 0, errors.New(ErrTransactionIsNil)
 	}
+	if len(*keys) == 0 || len(*keys) != len(*vals) {
+		return 0, errors.New("fields and values must have the same length")
+	}
 	txi := tx.(*sql.Tx)
-	vls := ""
-	for _, val := range *vals {
-		vls += fmt.Sprintf("'%s', ", val)
-	}
-	if vls != "" {
-		vls = strings.TrimSuffix(vls, ", ")
-	}
-	sql := fmt.Sprintf(QSimpleInsert, base, object, vls, strings.Join(*fields, ", "))
+	sql := fmt.Sprintf(QSimpleInsert, base, object, strings.Join(*keys, ", "), strings.Join(*vals, ", "))
 	result, err := txi.Exec(sql)
 	if err != nil {
 		return 0, err
@@ -131,51 +129,82 @@ func (m *MySql) InsertAuto(tx interface{}, base, object string, fields *[]string
 	return id, nil
 }
 
-// GetId is a method that gets an object by id
-func (m *MySql) GetId(tx interface{}, base, object string, id int64, fields *[]string) (*[]any, error) {
+// Get is a method that gets all columns of a list of objects by a field
+func (m *MySql) Get (tx interface{}, base, object, keys *[]string, values *[]string) (*[]map[string]*string, error) {
 	if tx == nil {
 		return nil, errors.New(ErrTransactionIsNil)
 	}
 	txi := tx.(*sql.Tx)
-	sql := fmt.Sprintf("SELECT %s FROM %s.%s WHERE id = %d", strings.Join(*fields, ", "), base, object, id)
+	where, err := m.getFormatWhere(keys, values)
+	if err != nil {
+		return nil, err
+	}
+	sql := fmt.Sprintf(QGet, base, object, where)
 	rows, err := txi.Query(sql)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	if !rows.Next() {
-		return nil, errors.New(ErrNotFound)
-	}
-	vals := make([]interface{}, len(*fields))
-	err = rows.Scan(vals...)
-	if err != nil {
-		fmt.Println(1, err)
-		return nil, err
-	}
-	return &vals, nil
+	return m.formatRows(rows)
 }
 
-// GetField is a method that gets an object by field
-func (m *MySql) GetField(tx interface{}, base, object, field, value string, fields *[]string) (*[]interface{}, error) {
-	if tx == nil {
-		return nil, errors.New(ErrTransactionIsNil)
+// getFormatKeys is a method that gets the keys of the object formatted
+func (m *MySql) getFormatWhere(keys *[]string, values *[]string) (string, error) {
+	if len(*keys) != len(*values) {
+		return "", errors.New("fields and values must have the same length")
 	}
-	txi := tx.(*sql.Tx)
-	sql := fmt.Sprintf("SELECT %s FROM %s.%s WHERE %s = '%s'", strings.Join(*fields, ", "), base, object, field, value)
-	rows, err := txi.Query(sql)
+	ret := ""
+	for i, key := range *keys {
+		ret += fmt.Sprintf("%s = '%s' AND ", key, (*values)[i])
+	}
+	if ret != "" {
+		ret = ret[:len(ret)-5]
+	}
+	return ret, nil
+}
+
+// queyMountMap is a method that mounts the slice of maps os result
+func (r *MySql) formatRows(rows *sql.Rows) (*[]map[string]*string, error) {
+	cols, err := rows.Columns()
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	if !rows.Next() {
-		return nil, errors.New(ErrNotFound)
+	values := make([]interface{}, len(cols))
+	valuePtrs := make([]interface{}, len(cols))
+	for i := range cols {
+		valuePtrs[i] = &values[i]
 	}
-	vals := make([]interface{}, len(*fields))
-	err = rows.Scan(&vals)
-	if err != nil {
-		return nil, err
+	result := make([]map[string]*string, 0)
+	for rows.Next() {
+		if err := rows.Scan(valuePtrs...); err != nil {
+			return nil, err
+		}
+		row, err := r.formatRow(cols, values)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, row)
 	}
-	return &vals, nil
+	return &result, nil
+}
+
+// queryFormatRow is a method that formats the row
+func (r *MySql) formatRow(cols []string, values []interface{}) (map[string]*string, error) {
+	row := make(map[string]*string, len(values))
+	for i, val := range values {
+		if val == nil {
+			row[cols[i]] = nil
+			continue
+		}
+		b, ok := val.([]byte)
+		if ok {
+			str := string(b)
+			row[cols[i]] = &str
+		} else {
+			return nil, errors.New("invalid value found")
+		}
+	}
+	return row, nil
 }
 
 // DeleteId is a method that deletes an object by id

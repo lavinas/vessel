@@ -3,6 +3,7 @@ package entity
 import (
 	"fmt"
 	"time"
+	"strconv"
 )
 
 const (
@@ -30,7 +31,7 @@ func (a *Asset) Create(className, name, description string, tx interface{}) erro
 		return err
 	}
 	fds := []string{"class_id", "name", "description", "created_at"}
-	vals := []string{fmt.Sprintf("%d", a.Class.ID), name, description, time.Now().Format(time.DateTime)}
+	vals := []string{fmt.Sprintf("%d", a.Class.ID), "'" +name+"'", "'"+description+"'", "'"+time.Now().Format(time.DateTime)+"'"}
 	if a.ID, err = a.Repo.InsertAuto(tx, baseName, assetTable, &fds, &vals); err != nil {
 		return err
 	}
@@ -39,20 +40,20 @@ func (a *Asset) Create(className, name, description string, tx interface{}) erro
 
 // GetByName is a method that gets an asset by name
 func (a *Asset) GetByName(name string, tx interface{}) error {
-	tx, err := a.CheckTx(tx)
+	cols, vals, err := a.Repo.Get(tx, baseName, assetTable, "name", name)
 	if err != nil {
 		return err
 	}
-	fields := []string{"id", "class_id", "name", "description", "created_at"}
-	vals, err := a.Repo.GetId(tx, baseName, assetTable, a.ID, &fields)
+	if len(*vals) == 0 {
+		return nil
+	}
+	a.ID, err = strconv.ParseInt(*(*vals)[0][(*cols)["id"]], 10, 64)
 	if err != nil {
 		return err
 	}
-	a.ID = (*vals)[0].(int64)
-	a.Name = (*vals)[2].(string)
-	a.Description = (*vals)[3].(string)
-	a.CreatedAt = (*vals)[4].(time.Time)
-	a.Class, err = a.getAssetClass((*vals)[1].(int64), tx)
+	a.Name = *(*vals)[0][(*cols)["name"]]
+	a.Description = *(*vals)[0][(*cols)["description"]]
+	a.CreatedAt, err = time.Parse(time.DateTime, *(*vals)[0][(*cols)["created_at"]])
 	if err != nil {
 		return err
 	}
