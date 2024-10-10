@@ -17,7 +17,7 @@ func TestNewMySql(t *testing.T) {
 	}
 }
 
-func TestInsertAuto(t *testing.T) {
+func TestInsertGet(t *testing.T) {
 	mysql, err := NewMySql(os.Getenv("MYSQL_DNS"), "")
 	if err != nil {
 		t.Error(err)
@@ -29,10 +29,10 @@ func TestInsertAuto(t *testing.T) {
 	}
 	defer mysql.Rollback(tx)
 	vals := map[string]*string{
-		"id": &[]string{"99999999"}[0],
-		"name": &[]string{"test"}[0],
+		"id":          &[]string{"99999999"}[0],
+		"name":        &[]string{"test"}[0],
 		"description": nil,
-		"created_at": &[]string{"2021-01-01"}[0],
+		"created_at":  &[]string{"2021-01-01"}[0],
 	}
 	id, err := mysql.InsertAuto(tx, "assets", "class", &vals)
 	if err != nil {
@@ -41,6 +41,21 @@ func TestInsertAuto(t *testing.T) {
 	if id != 99999999 {
 		t.Error("id != 99999999")
 	}
+	vals = map[string]*string{
+		"id": &[]string{"99999999"}[0],
+	}
+	row, err := mysql.Get(tx, "assets", "class", &vals)
+	if err != nil {
+		t.Error(err)
+	}
+	if row == nil {
+		t.Fatal("row == nil")
+	}
+	r := *row
+	s := *r[0]["id"]
+	if s != "99999999" {
+		t.Error("s[\"id\"] != \"99999999\"")
+	}
 	err = mysql.DeleteId(tx, "assets", "class", id)
 	if err != nil {
 		t.Error(err)
@@ -48,5 +63,5 @@ func TestInsertAuto(t *testing.T) {
 	err = mysql.Commit(tx)
 	if err != nil {
 		t.Error(err)
-	}	
+	}
 }

@@ -16,15 +16,15 @@ import (
 )
 
 const (
-	ConnectionTimeout          = 5 * time.Second
-	
+	ConnectionTimeout = 5 * time.Second
+
 	ErrRepoSshInvalid          = "invalid ssh dns"
 	ErrRepoPassNotImplemented  = "password authentication is not implemented"
 	ErrRepoSshTimeout          = "ssh connection timeout"
 	ErrRepoProtoNotImplemented = "protocol is not implemented"
 	ErrTransactionIsNil        = "transaction is nil"
-	ErrInsertAutoParams  = "mysql insert auto invalid params"
-	ErrGetParams          = "mysal get invalid params"
+	ErrInsertAutoParams        = "mysql insert auto invalid params"
+	ErrGetParams               = "mysal get invalid params"
 
 	QUse          = "USE %s;"
 	QSimpleInsert = "INSERT INTO %s.%s (%s) VALUES (%s);"
@@ -112,7 +112,7 @@ func (m *MySql) Rollback(tx interface{}) error {
 func (m *MySql) InsertAuto(tx interface{}, base, object string, vals *map[string]*string) (int64, error) {
 	if tx == nil || base == "" || object == "" || vals == nil || len(*vals) == 0 {
 		return 0, errors.New(ErrInsertAutoParams)
-	} 
+	}
 	txi := tx.(*sql.Tx)
 	keys, vls := m.getFormatVals(vals)
 	sql := fmt.Sprintf(QSimpleInsert, base, object, keys, vls)
@@ -128,7 +128,7 @@ func (m *MySql) InsertAuto(tx interface{}, base, object string, vals *map[string
 }
 
 // Get is a method that gets all columns of a list of objects by a field
-func (m *MySql) Get (tx interface{}, base, object string, vals *map[string]*string) (*[]map[string]*string, error) {
+func (m *MySql) Get(tx interface{}, base, object string, vals *map[string]*string) (*[]map[string]*string, error) {
 	if tx == nil || base == "" || object == "" || vals == nil || len(*vals) == 0 {
 		return nil, errors.New(ErrGetParams)
 	}
@@ -152,7 +152,7 @@ func (m *MySql) getFormatVals(vals *map[string]*string) (string, string) {
 			continue
 		}
 		values += fmt.Sprintf("'%s', ", *val)
-	}	
+	}
 	return keys[:len(keys)-2], values[:len(values)-2]
 }
 

@@ -2,8 +2,8 @@ package entity
 
 import (
 	"fmt"
-	"time"
 	"strconv"
+	"time"
 )
 
 const (
@@ -31,7 +31,7 @@ func (a *Asset) Create(className, name, description string, tx interface{}) erro
 		return err
 	}
 	fds := []string{"class_id", "name", "description", "created_at"}
-	vals := []string{fmt.Sprintf("%d", a.Class.ID), "'" +name+"'", "'"+description+"'", "'"+time.Now().Format(time.DateTime)+"'"}
+	vals := []string{fmt.Sprintf("%d", a.Class.ID), "'" + name + "'", "'" + description + "'", "'" + time.Now().Format(time.DateTime) + "'"}
 	if a.ID, err = a.Repo.InsertAuto(tx, baseName, assetTable, &fds, &vals); err != nil {
 		return err
 	}
@@ -69,4 +69,3 @@ func (a *Asset) getAssetClass(id int64, tx interface{}) (*Class, error) {
 	}
 	return a.Class, nil
 }
-
