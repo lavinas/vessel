@@ -24,7 +24,7 @@ const (
 	ErrRepoProtoNotImplemented = "protocol is not implemented"
 	ErrTransactionIsNil        = "transaction is nil"
 	ErrInsertAutoParams        = "mysql insert auto invalid params"
-	ErrGetParams               = "mysal get invalid params"
+	ErrGetParams               = "mysql get invalid params"
 
 	QUse          = "USE %s;"
 	QSimpleInsert = "INSERT INTO %s.%s (%s) VALUES (%s);"
@@ -109,32 +109,33 @@ func (m *MySql) Rollback(tx interface{}) error {
 }
 
 // InsertAuto is a method that inserts an object into the database and return the i d
-func (m *MySql) InsertAuto(tx interface{}, base, object string, vals *map[string]*string) (int64, error) {
+func (m *MySql) Insert(tx interface{}, base, object string, vals *map[string]interface{}) (int64, error) {
 	if tx == nil || base == "" || object == "" || vals == nil || len(*vals) == 0 {
 		return 0, errors.New(ErrInsertAutoParams)
 	}
 	txi := tx.(*sql.Tx)
-	keys, vls := m.getFormatVals(vals)
+	keys, vls, objs := m.getKeysValues(vals)
 	sql := fmt.Sprintf(QSimpleInsert, base, object, keys, vls)
-	result, err := txi.Exec(sql)
+	result, err := txi.Exec(sql, *objs...)
 	if err != nil {
 		return 0, err
 	}
 	id, err := result.LastInsertId()
 	if err != nil {
 		return 0, err
-	}
+	}	
 	return id, nil
 }
 
 // Get is a method that gets all columns of a list of objects by a field
-func (m *MySql) Get(tx interface{}, base, object string, vals *map[string]*string) (*[]map[string]*string, error) {
+func (m *MySql) Get(tx interface{}, base, object string, vals *map[string]interface{}) (*[]map[string]interface{}, error) {
 	if tx == nil || base == "" || object == "" || vals == nil || len(*vals) == 0 {
 		return nil, errors.New(ErrGetParams)
 	}
 	txi := tx.(*sql.Tx)
-	sql := fmt.Sprintf(QGet, base, object, m.getFormatWhere(vals))
-	rows, err := txi.Query(sql)
+	where, vls := m.getFormatWhere(vals)
+	sql := fmt.Sprintf(QGet, base, object, where)
+	rows, err := txi.Query(sql, vls...)
 	if err != nil {
 		return nil, err
 	}
@@ -143,34 +144,33 @@ func (m *MySql) Get(tx interface{}, base, object string, vals *map[string]*strin
 }
 
 // getFormatVals is a method that gets keys and values of map of vals
-func (m *MySql) getFormatVals(vals *map[string]*string) (string, string) {
-	var keys, values string
+func (m *MySql) getKeysValues(vals *map[string]interface{}) (string, string, *[]interface{}) {
+	var keys, vls string
+	var objs []interface{}
 	for key, val := range *vals {
-		keys += key + ", "
 		if val == nil {
-			values += "NULL, "
 			continue
 		}
-		values += fmt.Sprintf("'%s', ", *val)
+		keys += key + ", "
+		vls += "?, "
+		objs = append(objs, val)
 	}
-	return keys[:len(keys)-2], values[:len(values)-2]
+	return keys[:len(keys)-2], vls[:len(vls)-2], &objs
 }
 
 // getFormatKeys is a method that gets the keys of the object formatted
-func (m *MySql) getFormatWhere(vals *map[string]*string) string {
+func (m *MySql) getFormatWhere(vals *map[string]interface{}) (string, []interface{}) {
 	var where string
+	var objs []interface{}
 	for key, val := range *vals {
-		if val == nil {
-			where += fmt.Sprintf("%s is NULL AND ", key)
-			continue
-		}
-		where += fmt.Sprintf("%s = '%s' AND ", key, *val)
+		where += fmt.Sprintf("%s = ? AND ", key)
+		objs = append(objs, val)
 	}
-	return where[:len(where)-5]
+	return where[:len(where)-5], objs
 }
 
 // queyMountMap is a method that mounts the slice of maps os result
-func (r *MySql) formatRows(rows *sql.Rows) (*[]map[string]*string, error) {
+func (r *MySql) formatRows(rows *sql.Rows) (*[]map[string]interface{}, error) {
 	cols, err := rows.Columns()
 	if err != nil {
 		return nil, err
@@ -180,7 +180,7 @@ func (r *MySql) formatRows(rows *sql.Rows) (*[]map[string]*string, error) {
 	for i := range cols {
 		valuePtrs[i] = &values[i]
 	}
-	result := make([]map[string]*string, 0)
+	result := make([]map[string]interface{}, 0)
 	for rows.Next() {
 		if err := rows.Scan(valuePtrs...); err != nil {
 			return nil, err
@@ -195,20 +195,10 @@ func (r *MySql) formatRows(rows *sql.Rows) (*[]map[string]*string, error) {
 }
 
 // queryFormatRow is a method that formats the row
-func (r *MySql) formatRow(cols []string, values []interface{}) (map[string]*string, error) {
-	row := make(map[string]*string, len(values))
+func (r *MySql) formatRow(cols []string, values []interface{}) (map[string]interface{}, error) {
+	row := make(map[string]interface{}, len(values))
 	for i, val := range values {
-		if val == nil {
-			row[cols[i]] = nil
-			continue
-		}
-		b, ok := val.([]byte)
-		if ok {
-			str := string(b)
-			row[cols[i]] = &str
-		} else {
-			return nil, errors.New("invalid value found")
-		}
+		row[cols[i]] = val
 	}
 	return row, nil
 }

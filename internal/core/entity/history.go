@@ -1,8 +1,11 @@
 package entity
 
 import (
-	"fmt"
 	"time"
+)
+
+const (
+	historyTable = "history"
 )
 
 // History represents the history domain model
@@ -29,9 +32,13 @@ func (h *History) Create(at time.Time, assetName, eventName string, value float6
 	if err := h.Event.GetByName(eventName, tx); err != nil {
 		return err
 	}
-	fds := []string{"asset_id", "event_id", "at", "value"}
-	vals := []string{fmt.Sprintf("%d", h.Asset.ID), fmt.Sprintf("%d", h.Event.ID), at.Format(time.DateTime), fmt.Sprintf("%.2f", value)}
-	if h.ID, err = h.Repo.InsertAuto(tx, baseName, "history", &fds, &vals); err != nil {
+	vls := map[string]interface{}{
+		"asset_id": h.Asset.ID,
+		"event_id": h.Event.ID,
+		"at":       at.Format(time.DateTime),
+		"value":    value,
+	}
+	if h.ID, err = h.Repo.Insert(tx, baseName, historyTable, &vls); err != nil {
 		return err
 	}
 	return nil

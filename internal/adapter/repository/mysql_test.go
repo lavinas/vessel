@@ -2,6 +2,7 @@ package repository
 
 import (
 	"os"
+	"time"
 
 	"testing"
 )
@@ -28,21 +29,20 @@ func TestInsertGet(t *testing.T) {
 		t.Error(err)
 	}
 	defer mysql.Rollback(tx)
-	vals := map[string]*string{
-		"id":          &[]string{"99999999"}[0],
-		"name":        &[]string{"test"}[0],
-		"description": nil,
-		"created_at":  &[]string{"2021-01-01"}[0],
+	vals := map[string]interface{}{
+		"name":        "test",
+		"description": "desc",
+		"created_at":  time.Now(),
 	}
-	id, err := mysql.InsertAuto(tx, "assets", "class", &vals)
+	id, err := mysql.Insert(tx, "assets", "class", &vals)
 	if err != nil {
 		t.Error(err)
 	}
-	if id != 99999999 {
-		t.Error("id != 99999999")
+	if id == 0 {
+		t.Error("id generated is 0")
 	}
-	vals = map[string]*string{
-		"id": &[]string{"99999999"}[0],
+	vals = map[string]interface{}{
+		"id": id,
 	}
 	row, err := mysql.Get(tx, "assets", "class", &vals)
 	if err != nil {
@@ -51,10 +51,8 @@ func TestInsertGet(t *testing.T) {
 	if row == nil {
 		t.Fatal("row == nil")
 	}
-	r := *row
-	s := *r[0]["id"]
-	if s != "99999999" {
-		t.Error("s[\"id\"] != \"99999999\"")
+	if (*row)[0]["id"].(int64) != id {
+		t.Error("row[0][\"id\"] != id")
 	}
 	err = mysql.DeleteId(tx, "assets", "class", id)
 	if err != nil {
