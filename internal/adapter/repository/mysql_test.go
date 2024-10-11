@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"reflect"
 	"os"
 	"time"
 
@@ -33,7 +34,7 @@ func TestInsertGet(t *testing.T) {
 		"name":       "test3",
 		"created_at": time.Now(),
 		"value":      10.2,
-		"value2":     nil,
+		"value2":     100,
 	}
 	id, err := mysql.Insert(tx, "assets", "test", &vals)
 	if err != nil {
@@ -52,6 +53,14 @@ func TestInsertGet(t *testing.T) {
 	if row == nil {
 		t.Fatal("row == nil")
 	}
+	t.Error(1, reflect.TypeOf((*row)[0]["id"]).String())
+	t.Error(2, reflect.TypeOf((*row)[0]["name"]).String())
+	t.Error(3, reflect.TypeOf((*row)[0]["value"]).String())
+	t.Error(4, reflect.TypeOf((*row)[0]["value2"]).String())
+	t.Error(5, reflect.TypeOf(5.2).String())
+
+
+	/*
 	if (*row)[0]["id"].(int64) != id {
 		t.Error("row[0][\"id\"] != id")
 	}
@@ -64,7 +73,8 @@ func TestInsertGet(t *testing.T) {
 	if (*row)[0]["created_at"].(time.Time).IsZero() {
 		t.Error("row[0][\"created_at\"].IsZero()")
 	}
-	err = mysql.DeleteId(tx, "assets", "class", id)
+	*/
+	err = mysql.DeleteId(tx, "assets", "test", id)
 	if err != nil {
 		t.Error(err)
 	}

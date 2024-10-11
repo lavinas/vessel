@@ -128,14 +128,14 @@ func (m *MySql) Insert(tx interface{}, base, object string, vals *map[string]int
 }
 
 // Get is a method that gets all columns of a list of objects by a field
-func (m *MySql) Get(tx interface{}, base, object string, vals *map[string]interface{}) (*[]map[string]interface{}, error) {
-	if tx == nil || base == "" || object == "" || vals == nil || len(*vals) == 0 {
+func (m *MySql) Get(tx interface{}, base, object string, where *map[string]interface{}) (*[]map[string]interface{}, error) {
+	if tx == nil || base == "" || object == "" || where == nil || len(*where) == 0 {
 		return nil, errors.New(ErrGetParams)
 	}
 	txi := tx.(*sql.Tx)
-	where, vls := m.getFormatWhere(vals)
-	sql := fmt.Sprintf(QGet, base, object, where)
-	rows, err := txi.Query(sql, vls...)
+	whr, objs := m.getFormatWhere(where)
+	sql := fmt.Sprintf(QGet, base, object, whr)
+	rows, err := txi.Query(sql, objs...)
 	if err != nil {
 		return nil, err
 	}
@@ -159,14 +159,14 @@ func (m *MySql) getKeysValues(vals *map[string]interface{}) (string, string, *[]
 }
 
 // getFormatKeys is a method that gets the keys of the object formatted
-func (m *MySql) getFormatWhere(vals *map[string]interface{}) (string, []interface{}) {
-	var where string
+func (m *MySql) getFormatWhere(where *map[string]interface{}) (string, []interface{}) {
+	var whr string
 	var objs []interface{}
-	for key, val := range *vals {
-		where += fmt.Sprintf("%s = ? AND ", key)
+	for key, val := range *where {
+		whr += fmt.Sprintf("%s = ? AND ", key)
 		objs = append(objs, val)
 	}
-	return where[:len(where)-5], objs
+	return whr[:len(whr)-5], objs
 }
 
 // queyMountMap is a method that mounts the slice of maps os result
@@ -198,6 +198,10 @@ func (r *MySql) formatRows(rows *sql.Rows) (*[]map[string]interface{}, error) {
 func (r *MySql) formatRow(cols []string, values []interface{}) (map[string]interface{}, error) {
 	row := make(map[string]interface{}, len(values))
 	for i, val := range values {
+		if obj, ok := val.([]byte); ok {
+			row[cols[i]] = string(obj)
+			continue
+		}
 		row[cols[i]] = val
 	}
 	return row, nil
