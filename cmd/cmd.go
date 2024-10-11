@@ -23,7 +23,7 @@ func main() {
 	}
 	logger := log.New(f, "vessel: ", log.LstdFlags)
 	config := config.NewConfig()
-	service := service.NewDtoService(repo, logger, config)
+	service := service.NewDtoGeneric(repo, logger, config)
 	handler := handler.NewCommandLine(service)
 	handler.Run()
 }

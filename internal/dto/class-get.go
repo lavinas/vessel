@@ -8,6 +8,7 @@ import (
 
 const (
 	ErrClassGetRequestInvalidID = "invalid ID"
+	ErrClassGetRequestNotFound  = "class not found"
 )
 
 // GetClassRequest represents the get class request
@@ -45,6 +46,7 @@ type ClassGetResponse struct {
 
 // NewClassGetResponse creates a new class get response
 func NewClassGetResponse(status, statusdesc string, ID int64, name, description string, createdAt string) *ClassGetResponse {
+	fmt.Println(2, statusdesc)
 	return &ClassGetResponse{
 		BaseResponse: BaseResponse{
 			Status:      status,
@@ -66,7 +68,11 @@ func (r *ClassGetResponse) ToJson() string {
 // ToLine returns the line representation of the response
 func (r *ClassGetResponse) String() string {
 	if r.Status == StatusSuccess {
-		return fmt.Sprintf("ok: id: %d, name: %s, description: %s, created_at: %v", r.ID, r.Name, r.Description, r.CreatedAt)
+		ret := [][]string{
+			{"ID", "Name", "Description", "Created At"},
+			{fmt.Sprintf("%d", r.ID), r.Name, r.Description, r.CreatedAt},
+		}
+		return r.ToTable(ret)
 	}
-	return fmt.Sprintf("error: %s - %s", r.Status, r.Description)
+	return fmt.Sprintf("error: %s - %s", r.Status, r.BaseResponse.Description)
 }

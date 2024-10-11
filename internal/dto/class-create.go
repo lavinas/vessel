@@ -40,17 +40,23 @@ func (r *ClassCreateRequest) ToJson() string {
 // CreateClassResponse represents the create class response
 type ClassCreateResponse struct {
 	BaseResponse
-	ID int64 `json:"id"`
+	ID          int64  `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	CreatedAt   string `json:"created_at"`
 }
 
 // NewClassCreateResponse creates a new class create response
-func NewClassCreateResponse(status, description string, ID int64) *ClassCreateResponse {
+func NewClassCreateResponse(status, statusdesc string, ID int64, name, description string, createdAt string) *ClassCreateResponse {
 	return &ClassCreateResponse{
 		BaseResponse: BaseResponse{
 			Status:      status,
-			Description: description,
+			Description: statusdesc,
 		},
-		ID: ID,
+		ID:          ID,
+		Name:        name,
+		Description: description,
+		CreatedAt:   createdAt,
 	}
 }
 
@@ -63,7 +69,11 @@ func (r *ClassCreateResponse) ToJson() string {
 // ToLine returns the line representation of the response
 func (r *ClassCreateResponse) String() string {
 	if r.Status == StatusSuccess {
-		return fmt.Sprintf("ok - id: %d", r.ID)
+		ret := [][]string{
+			{"ID", "Name", "Description", "Created At"},
+			{fmt.Sprintf("%d", r.ID), r.Name, r.Description, r.CreatedAt},
+		}
+		return r.ToTable(ret)
 	}
-	return fmt.Sprintf("error: %s - %s", r.Status, r.Description)
+	return fmt.Sprintf("error: %s - %s", r.BaseResponse.Status, r.BaseResponse.Description)
 }

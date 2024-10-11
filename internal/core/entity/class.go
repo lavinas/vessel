@@ -7,8 +7,7 @@ import (
 )
 
 const (
-	ErrNameIsBlank = "name is blank"
-	classTable     = "class"
+	classTable = "class"
 )
 
 // Class represents the class domain model
@@ -45,33 +44,26 @@ func (c *Class) Create(name, description string, tx interface{}) error {
 
 // GetByID is a method that gets a class by ID
 func (c *Class) GetByID(id int64, tx interface{}) error {
-	tx, err := c.CheckTx(tx)
-	if err != nil {
-		return err
-	}
-	where := map[string]interface{}{"id": id}
-	vals, err := c.Repo.Get(tx, baseName, classTable, &where)
-	if err != nil {
-		return err
-	}
-	if len(*vals) == 0 {
-		return nil
-	}
-	c.ID = (*vals)[0]["id"].(int64)
-	c.Name = (*vals)[0]["name"].(string)
-	c.Description = (*vals)[0]["description"].(string)
-	createdAt, err := time.Parse((*vals)[0]["created_at"].(string), time.DateTime)
-	if err != nil {
-		return err
-	}
-	c.CreatedAt = createdAt
-	return nil
+	return c.get(&map[string]interface{}{"id": id}, tx)
 }
 
 // Get is a method that gets a class
 func (c *Class) GetByName(name string, tx interface{}) error {
-	where := map[string]interface{}{"name": name}
-	vals, err := c.Repo.Get(tx, baseName, classTable, &where)
+	return c.get(&map[string]interface{}{"name": name}, tx)
+}
+
+// Loaded is a method that checks if a class is loaded
+func (c *Class) Loaded() bool {
+	return c.ID != 0
+}
+
+func (c *Class) GetByDescription(description string, tx interface{}) error {
+	return c.get(&map[string]interface{}{"description": description}, tx)
+}
+
+// get is a method that gets a class from the database
+func (c *Class) get(where *map[string]interface{}, tx interface{}) error {
+	vals, err := c.Repo.Get(tx, baseName, classTable, where)
 	if err != nil {
 		return err
 	}
@@ -81,6 +73,8 @@ func (c *Class) GetByName(name string, tx interface{}) error {
 	c.ID = (*vals)[0]["id"].(int64)
 	c.Name = (*vals)[0]["name"].(string)
 	c.Description = (*vals)[0]["description"].(string)
-	c.CreatedAt = (*vals)[0]["created_at"].(time.Time)
+	if c.CreatedAt, err = time.Parse(time.DateTime, (*vals)[0]["created_at"].(string)); err != nil {
+		return err
+	}
 	return nil
 }
