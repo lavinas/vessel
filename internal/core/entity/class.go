@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/lavinas/vessel/internal/port"
@@ -49,7 +50,7 @@ func (c *Class) GetByID(id int64, tx interface{}) error {
 	if err != nil {
 		return err
 	}
-	where := map[string]interface{}{"id": id}	
+	where := map[string]interface{}{"id": id}
 	vals, err := c.Repo.Get(tx, baseName, classTable, &where)
 	if err != nil {
 		return err
@@ -57,6 +58,7 @@ func (c *Class) GetByID(id int64, tx interface{}) error {
 	if len(*vals) == 0 {
 		return nil
 	}
+	fmt.Println("vals", *vals)
 	c.ID = (*vals)[0]["id"].(int64)
 	c.Name = (*vals)[0]["name"].(string)
 	c.Description = (*vals)[0]["description"].(string)
@@ -80,5 +82,3 @@ func (c *Class) GetByName(name string, tx interface{}) error {
 	c.CreatedAt = (*vals)[0]["created_at"].(time.Time)
 	return nil
 }
-
-

@@ -29,11 +29,11 @@ func (a *Asset) Create(className, name, description string, tx interface{}) erro
 		return err
 	}
 	vals := map[string]interface{}{
-		"class_id":   a.Class.ID,
-		"name":       name,
+		"class_id":    a.Class.ID,
+		"name":        name,
 		"description": description,
-		"created_at": time.Now().Format(time.DateTime),
-	} 
+		"created_at":  time.Now().Format(time.DateTime),
+	}
 	if a.ID, err = a.Repo.Insert(tx, baseName, assetTable, &vals); err != nil {
 		return err
 	}

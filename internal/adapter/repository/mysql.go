@@ -123,7 +123,7 @@ func (m *MySql) Insert(tx interface{}, base, object string, vals *map[string]int
 	id, err := result.LastInsertId()
 	if err != nil {
 		return 0, err
-	}	
+	}
 	return id, nil
 }
 

@@ -24,6 +24,7 @@ func NewDtoService(repo port.Repository, logger port.Logger, config port.Config)
 // Run is a method that runs the service
 func (s *DtoService) Run(request port.Request) port.Response {
 	switch request.Action() {
+
 	case "ClassCreate": // Create a class
 		rn := NewClassService(s.Repo, s.Logger, s.Config)
 		return rn.Create(request.(*dto.ClassCreateRequest))

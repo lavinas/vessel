@@ -29,7 +29,7 @@ func (c *CommandLine) Run() {
 		return
 	}
 	response := c.service.Run(dto)
-	fmt.Println(response.ToLine())
+	fmt.Println(response.String())
 }
 
 // args represents the arguments for the class command

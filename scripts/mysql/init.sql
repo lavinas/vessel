@@ -50,3 +50,13 @@ create table if not exists `history` (
     foreign key (`asset_id`) references `asset` (`id`)
     foreign key (`event_id`) references `event` (`id`)
 ) engine=InnoDB default charset=utf8;
+
+
+create table if not exists `test` (
+    `id` bigint not null auto_increment,
+    `name` varchar(100) not null,
+    `created_at` datetime not null,
+    `value` decimal(10, 2) not null,
+    primary key (`id`),
+    unique key `name` (`name`)
+) engine=InnoDB default charset=utf8;

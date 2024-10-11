@@ -64,6 +64,9 @@ func (r *ClassGetResponse) ToJson() string {
 }
 
 // ToLine returns the line representation of the response
-func (r *ClassGetResponse) ToLine() string {
-	return fmt.Sprintf("%d %s %s %s %s", r.ID, r.Name, r.Description, r.CreatedAt, r.Status)
+func (r *ClassGetResponse) String() string {
+	if r.Status == StatusSuccess {
+		return fmt.Sprintf("ok: id: %d, name: %s, description: %s, created_at: %v", r.ID, r.Name, r.Description, r.CreatedAt)
+	}
+	return fmt.Sprintf("error: %s - %s", r.Status, r.Description)
 }

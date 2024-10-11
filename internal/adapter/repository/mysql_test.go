@@ -30,11 +30,12 @@ func TestInsertGet(t *testing.T) {
 	}
 	defer mysql.Rollback(tx)
 	vals := map[string]interface{}{
-		"name":        "test",
-		"description": "desc",
-		"created_at":  time.Now(),
+		"name":       "test3",
+		"created_at": time.Now(),
+		"value":      10.2,
+		"value2":     nil,
 	}
-	id, err := mysql.Insert(tx, "assets", "class", &vals)
+	id, err := mysql.Insert(tx, "assets", "test", &vals)
 	if err != nil {
 		t.Error(err)
 	}
@@ -44,7 +45,7 @@ func TestInsertGet(t *testing.T) {
 	vals = map[string]interface{}{
 		"id": id,
 	}
-	row, err := mysql.Get(tx, "assets", "class", &vals)
+	row, err := mysql.Get(tx, "assets", "test", &vals)
 	if err != nil {
 		t.Error(err)
 	}
@@ -54,10 +55,20 @@ func TestInsertGet(t *testing.T) {
 	if (*row)[0]["id"].(int64) != id {
 		t.Error("row[0][\"id\"] != id")
 	}
+	if (*row)[0]["name"].(string) != "test" {
+		t.Error("row[0][\"name\"] != \"test\"")
+	}
+	if (*row)[0]["description"].(string) != "desc" {
+		t.Error("row[0][\"description\"] != \"desc\"")
+	}
+	if (*row)[0]["created_at"].(time.Time).IsZero() {
+		t.Error("row[0][\"created_at\"].IsZero()")
+	}
 	err = mysql.DeleteId(tx, "assets", "class", id)
 	if err != nil {
 		t.Error(err)
 	}
+
 	err = mysql.Commit(tx)
 	if err != nil {
 		t.Error(err)

@@ -38,6 +38,6 @@ func (r *BaseResponse) ToJson() string {
 }
 
 // ToLine returns the line representation of the response
-func (r *BaseResponse) ToLine() string {
-	return fmt.Sprintf("%s %s", r.Status, r.Description)
+func (r *BaseResponse) String() string {
+	return fmt.Sprintf("%s: %s", r.Status, r.Description)
 }
