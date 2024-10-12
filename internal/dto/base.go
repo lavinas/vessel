@@ -16,8 +16,8 @@ const (
 	StatusInternalServerError = "internal server error"
 	StatusNotFound            = "not found"
 	StatusConflict            = "conflict"
-	
-	ErrInternalGeneric        = "contact administrator"
+
+	ErrInternalGeneric = "contact administrator"
 )
 
 // BaseResponse represents the base response

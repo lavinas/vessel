@@ -46,7 +46,6 @@ type ClassGetResponse struct {
 
 // NewClassGetResponse creates a new class get response
 func NewClassGetResponse(status, statusdesc string, ID int64, name, description string, createdAt string) *ClassGetResponse {
-	fmt.Println(2, statusdesc)
 	return &ClassGetResponse{
 		BaseResponse: BaseResponse{
 			Status:      status,

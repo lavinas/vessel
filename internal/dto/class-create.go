@@ -10,6 +10,7 @@ import (
 
 const (
 	ErrClassCreateRequestNameIsBlank = "name is blank"
+	ErrClassCreateRequestDuplicated  = "class already exists with the same name"
 )
 
 // CreateClassRequest represents the create class request

@@ -30,6 +30,12 @@ func (s *DtoGeneric) Run(request port.Request) port.Response {
 	case "ClassGet": // Get a class
 		rn := NewClassGet(s.Repo, s.Logger, s.Config)
 		return rn.Run(request.(*dto.ClassGetRequest))
+	case "AssetCreate": // Create an asset
+		rn := NewAssetCreate(s.Repo, s.Logger, s.Config)
+		return rn.Run(request.(*dto.AssetCreateRequest))
+	case "AssetGet": // Get an asset
+		rn := NewAssetGet(s.Repo, s.Logger, s.Config)
+		return rn.Run(request.(*dto.AssetGetRequest))
 	default:
 		return dto.NewBaseResponse(dto.StatusBadRequest, "invalid action")
 	}

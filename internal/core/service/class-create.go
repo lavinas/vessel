@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"time"
 
 	"github.com/lavinas/vessel/internal/core/entity"
@@ -30,13 +31,20 @@ func (c *ClassCreate) Run(request *dto.ClassCreateRequest) *dto.ClassCreateRespo
 		c.LogError(request, err)
 		return dto.NewClassCreateResponse(dto.StatusBadRequest, err.Error(), 0, "", "", "")
 	}
-	tx, err := c.Repo.Begin("assets")
+	tx, err := c.Repo.Begin("")
 	if err != nil {
 		c.LogError(request, err)
 		return dto.NewClassCreateResponse(dto.StatusInternalServerError, dto.ErrInternalGeneric, 0, "", "", "")
 	}
 	defer c.Repo.Rollback(tx)
 	class := entity.NewClass(c.Base.Repo)
+	if dup, err := class.CheckDuplicity(request.Name, tx); err != nil {
+		c.LogError(request, err)
+		return dto.NewClassCreateResponse(dto.StatusInternalServerError, dto.ErrInternalGeneric, 0, "", "", "")
+	} else if dup {
+		c.LogError(request, errors.New(dto.ErrClassCreateRequestDuplicated))
+		return dto.NewClassCreateResponse(dto.StatusBadRequest, dto.ErrClassCreateRequestDuplicated, 0, "", "", "")
+	}
 	if err := class.Create(request.Name, request.Description, tx); err != nil {
 		c.LogError(request, err)
 		return dto.NewClassCreateResponse(dto.StatusInternalServerError, dto.ErrInternalGeneric, 0, "", "", "")
@@ -48,4 +56,3 @@ func (c *ClassCreate) Run(request *dto.ClassCreateRequest) *dto.ClassCreateRespo
 	c.LogOk(request)
 	return dto.NewClassCreateResponse(dto.StatusSuccess, "ok", class.ID, request.Name, request.Description, time.Now().Format(time.DateTime))
 }
-

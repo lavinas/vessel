@@ -1,9 +1,9 @@
 package service
 
 import (
-	"fmt"
+	"errors"
 	"time"
-	
+
 	"github.com/lavinas/vessel/internal/core/entity"
 	"github.com/lavinas/vessel/internal/dto"
 	"github.com/lavinas/vessel/internal/port"
@@ -29,7 +29,6 @@ func NewClassGet(repo port.Repository, logger port.Logger, config port.Config) *
 func (c *ClassGet) Run(request *dto.ClassGetRequest) *dto.ClassGetResponse {
 	if err := request.Validate(); err != nil {
 		c.LogError(request, err)
-		fmt.Println(1, err.Error())
 		return dto.NewClassGetResponse(dto.StatusBadRequest, err.Error(), 0, "", "", "")
 	}
 	tx, err := c.Repo.Begin("")
@@ -43,8 +42,8 @@ func (c *ClassGet) Run(request *dto.ClassGetRequest) *dto.ClassGetResponse {
 		c.LogError(request, err)
 		return dto.NewClassGetResponse(dto.StatusInternalServerError, dto.ErrInternalGeneric, 0, "", "", "")
 	}
-	if !cl.Loaded() {
-		c.LogError(request, fmt.Errorf("class not found"))
+	if !cl.IsLoaded() {
+		c.LogError(request, errors.New(dto.ErrClassCreateRequestDuplicated))
 		return dto.NewClassGetResponse(dto.StatusNotFound, dto.ErrClassGetRequestNotFound, 0, "", "", "")
 	}
 	c.LogOk(request)

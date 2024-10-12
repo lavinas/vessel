@@ -35,6 +35,7 @@ func (c *CommandLine) Run() {
 // args represents the arguments for the class command
 type Args struct {
 	Class *ClassCmd `arg:"subcommand:class" help:"Class commands"`
+	Asset *AssetCmd `arg:"subcommand:asset" help:"Asset commands"`
 }
 
 // GetDto is a method that gets the correct DTO based on command line arguments
@@ -42,6 +43,8 @@ func (a *Args) GetDto() port.Request {
 	switch {
 	case a.Class != nil:
 		return a.Class.GetDto()
+	case a.Asset != nil:
+		return a.Asset.GetDto()
 	}
 	return nil
 }

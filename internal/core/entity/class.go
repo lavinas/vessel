@@ -53,12 +53,20 @@ func (c *Class) GetByName(name string, tx interface{}) error {
 }
 
 // Loaded is a method that checks if a class is loaded
-func (c *Class) Loaded() bool {
+func (c *Class) IsLoaded() bool {
 	return c.ID != 0
 }
 
-func (c *Class) GetByDescription(description string, tx interface{}) error {
-	return c.get(&map[string]interface{}{"description": description}, tx)
+// CheckDuplicity is a method that checks if a class is duplicated
+func (c *Class) CheckDuplicity(name string, tx interface{}) (bool, error) {
+	where := map[string]interface{}{
+		"name": name,
+	}
+	vals, err := c.Repo.Get(tx, baseName, classTable, &where)
+	if err != nil {
+		return false, err
+	}
+	return len(*vals) > 0, nil
 }
 
 // get is a method that gets a class from the database
