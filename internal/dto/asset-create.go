@@ -9,8 +9,8 @@ import (
 const (
 	ErrAssetCreateRequestClassNameIsBlank = "class name is blank"
 	ErrAssetCreateRequestNameIsBlank      = "name is blank"
-	ErrAssetCreateRequestDuplicated = "asset already exists with the same name"
-	ErrAssetCreateRequestClassNotFound = "class not found"
+	ErrAssetCreateRequestDuplicated       = "asset already exists with the same name"
+	ErrAssetCreateRequestClassNotFound    = "class not found"
 )
 
 // AssetCreateRequest represents the create asset request

@@ -28,24 +28,27 @@ func NewClassGet(repo port.Repository, logger port.Logger, config port.Config) *
 // Run is a method that runs the service
 func (c *ClassGet) Run(request *dto.ClassGetRequest) *dto.ClassGetResponse {
 	if err := request.Validate(); err != nil {
-		c.LogError(request, err)
-		return dto.NewClassGetResponse(dto.StatusBadRequest, err.Error(), 0, "", "", "")
+		return c.setError(request, err, dto.StatusBadRequest, err.Error())
 	}
 	tx, err := c.Repo.Begin("")
 	if err != nil {
-		c.LogError(request, err)
-		return dto.NewClassGetResponse(dto.StatusInternalServerError, dto.ErrInternalGeneric, 0, "", "", "")
+		return c.setError(request, err, dto.StatusInternalServerError, dto.ErrInternalGeneric)
 	}
 	defer c.Repo.Rollback(tx)
 	cl := entity.NewClass(c.Base.Repo)
 	if err := cl.GetByID(request.ID, tx); err != nil {
-		c.LogError(request, err)
-		return dto.NewClassGetResponse(dto.StatusInternalServerError, dto.ErrInternalGeneric, 0, "", "", "")
+		return c.setError(request, err, dto.StatusInternalServerError, dto.ErrInternalGeneric)
 	}
 	if !cl.IsLoaded() {
-		c.LogError(request, errors.New(dto.ErrClassCreateRequestDuplicated))
-		return dto.NewClassGetResponse(dto.StatusNotFound, dto.ErrClassGetRequestNotFound, 0, "", "", "")
+		err := errors.New(dto.ErrClassGetRequestNotFound)
+		return c.setError(request, err, dto.StatusNotFound, err.Error())
 	}
 	c.LogOk(request)
 	return dto.NewClassGetResponse(dto.StatusSuccess, "", cl.ID, cl.Name, cl.Description, cl.CreatedAt.Format(time.DateTime))
+}
+
+// setError is a method that sets an error
+func (c *ClassGet) setError(request *dto.ClassGetRequest, err error, status, message string) *dto.ClassGetResponse {
+	c.LogError(request, err)
+	return dto.NewClassGetResponse(status, message, 0, "", "", "")
 }
